@@ -1,0 +1,512 @@
+---
+title: "Final Report"
+output:
+  html_document:
+    df_print: paged
+    fig_caption: yes
+    number_sections: yes
+  pdf_document: default
+---
+
+```{=html}
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 17px;
+  }
+
+</style>
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+------------------------------------------------------------------------
+
+Name: Zhixin Tang (914021146)
+
+------------------------------------------------------------------------
+
+```{r,echo=FALSE,include=FALSE}
+library(gridExtra)
+library(scales)
+library(lubridate)
+library(ggplot2)
+library(MASS)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+```
+
+```{r, echo=FALSE, include=FALSE}
+covid <- read.csv(file = "WHO-COVID-19-global-data.csv",stringsAsFactors = TRUE)
+```
+```{r, echo=FALSE, include=FALSE}
+vaccine <- read.csv(file = "owid-covid-data.csv")
+class(vaccine$location)
+vaccine$location <- as.factor(vaccine$location)
+levels(vaccine$location)
+vaccine_df <- vaccine[vaccine$location=="United States",]
+```
+
+# Introduction
+
+Coronavirus disease (COVID-19) is a worldwide pandemic that began in 2019 till now. In the last two years, a lot of people have had Coronavirus, and a lot of people have even died because of Coronavirus. For all countries, Coronavirus disease is a big challenge because Coronavirus disease is a highly contagious viral virus. Now, there is no vaccine that can completely conquer Coronavirus. No one knows how long Coronavirus disease will last. Therefore, to help normal people who do not have any background to better understand Coronavirus and further to find a way to reduce Coronavirus cases, statistical analysis is particularly important. In this report, I first introduce Coronavirus disease in the background part. I mainly use the data set by the World Health Organization to show people an overview of Coronavirus disease in different countries, such as the number of cases, the number of deaths, and the case-mortality rates in different countries. The dataset can be downloaded from <https://covid19.who.int/WHO-COVID-19-global-data.csv>. Then, I will find out which kinds of countries have relatively higher cases of Coronavirus. As it is not possible to analyze all the countries, I choose the first 5 countries which have the highest Coronavirus cases and deaths. Then, I compare the strictness of policies, capital GPD, hospital beds per thousand of these countries, and the total population of these countries to find if there exist some similarities or differences between these countries. The measurements are from the second data set: <https://ourworldindata.org/covid-vaccinations>. 
+<br/> 
+In response to COVID-19, countries around the world have gradually changed from the initial policy of closing cities and zeroing to coexisting and dying with the virus. The most important factor in this is the research and development, promotion and popularization of the COVID-19 vaccine. By injecting the COVID-19 vaccine, the body's immune system will acquire the corresponding antibodies, so that when an individual is exposed to the COVID-19 virus, the individual will improve their own chances of survival because they have been vaccinated. Also, while vaccines are very effective at preventing serious infection and death, they are not 100 percent effective at stopping the acquisition and spread of the virus. Especially in areas with low vaccination rates and high infection rates, vaccinated people are more likely to be exposed to the virus and get breakthrough infections. And given the highly contagious mutation, countries around the world consider that periodic boosters will need to be implemented in the coming years.
+
+However, some people have been questioning the safety and effectiveness of vaccines. It is mainly reflected in the slight side effects of the vaccinated population, and the risk of contracting COVID-19 after receiving the vaccine. Thus, checking the effectiveness of Coronavirus vaccines is especially important. For analyzing the effectiveness of Coronavirus vaccines, I mainly compare the new deaths each day, icu patients per million with the number of people taking at least one dose of vaccine to see if vaccines decrease death cases. As there are too many samples and to reduce the potential problems, I will mainly focus on the United States. United States has the highest GPD and advanced medical equipment. Moreover, according to common sense, United States is the epicenter of the Coronavirus disease. The dataset I will use for the Coronavirus vaccine is from the Website "Our World in Data",  <https://ourworldindata.org/covid-vaccinations>. 
+
+## Questions Of Interest
+
+To make my report clearly, I post some question I want to figure out in the following analysis. 
+
+  1. What is the trend of cases of Coronavirus in different countries and what is the trend of fatality rate of different countries?
+  
+  2. Which countries have relatively higher cases of Coronavirus, and which countries have relatively lower cases of Coronavirus? What are the similarities of these countries? 
+  
+  3. What is the effectiveness of vaccines to reduce the death cases and severe cases in the United States.
+
+# Background
+
+ A novel coronavirus (CoV) named '2019-nCoV' or '2019 novel coronavirus' or 'COVID-19' by the World Health Organization (WHO) is in charge of the current outbreak of pneumonia that began at beginning of December 2019 near Wuhan City, Hubei Province, China${^{[1]}}$. Since 2019, Coronavirus has not been resolved until now and may never be resolved. People in the future may need to find a way to reduce the effects of Coronavirus on people's lives and coexist with Coronavirus. Thus, better understanding the features of Coronavirus and making effective vaccines are the primary tasks for people to combat Coronavirus.  Coronavirus is a virus around the lungs and it is very similar to Severe Acute Respiratory Syndrome (SARS). The symptoms of Coronavirus can be fever, cough, shortness of breath, pneumonia, or breathing difficulties${^{[2]}}$. For the recent detect of Coronavirus, Omicron, which was first detect in South Africa in November 2021, the symptoms are mainly sore throat and headache. Coronavirus is a virus that propagates fast. COVID-19 spreads mainly through three ways: Inhalation of air when near infected people who inhale small particles of virus; small particles containing Coronavirus on eyes, nose, and mouth; Use the hand with Coronavirus to touch eyes, nose, and mouth. From the World Health Organization Website, there are 416614051 confirmed cases, 5844097 confirmed deaths, and 10279668555 vaccine doses administered as of 14th February, 2022. The total death rate is about 1.403%. The death rate seems very low, but according to the fast spread of Coronavirus, the low death rate still means a huge number of cases of deaths.
+<br/>
+Coronavirus not only influences people's health, but also influences the economy of different countries. In order to minimize the propagation of COVID-19, a lot of countries reduce the number of international flights. Also, more and more people are not willing to travel to other countries, which has dealt a heavy blow to countries that rely on tourism as an important income. The World Bank report forecasted a 5.25 contraction in global GPD in 2020${^{[3]}}$. A lot of companies and restaurants are bankrupt because of Coronavirus disease. 
+<br/>
+Coronavirus death cases in different ranges of ages are different. Specifically, from the data of deaths in the United States, as of February 9, 2022, there are 231722 death cases of 85 years and older people, 230870 death cases of 75-84 years old people, 205457 death cases of 65-74 years old people, 168765 deaths cases of 50-64 years old people, 39166 death cases of 40-49 years old people, 16343 death cases of 30-39 years old people, 5581 death cases of 18-29 years old people, and 795 death cases of 0-17 years old people. The death cases in the United States consistently decrease when the age of people decreases. The reasons that death cases in older people are higher may be that Coronavirus can cause some other diseases and it can attack the immune systems of people.
+
+## Introduction to the data sets
+
+In this report, I will mainly use two data sets. The first data set is from the World Health Organization. I mainly use this data set in the Descriptive Analysis part. In this data set, there are 8 variables and it contains the data from 2020-01-03 to the current date. There are a total of 182727 samples in the data. Moreover, the data set includes a total of 237 different countries. The detailed description of this data is set in the following table. 
+```{r,echo=FALSE, include=TRUE, message=FALSE}
+variable_table_1 <- data.frame(Variable_name=c("Date_reported","Country_code","Country","WHO_region","New_cases","Cumulative_cases","New_deaths","Cumulative_deaths"), Type=c("Date","String","String","String","Integer","Integer","Integer","Integer"), Description=c("Date of reporting to WHO","ISO Alpha-2 country code","Country, territory, area", "WHO regional offices: WHO Member States are grouped into six WHO regions--Regional Office for Afria (AFRO), Regional Office for the Americas (AMRO), Regional Office for South-East Asia (SEARO), Regional Office for Europe (EURO), Regional Office for Eastern Mediterranean (EMRO), and Regional Office for the Western Pacific (WPRO).", "New confirmed cases. Calculated by subtracting previous cumulative case count form current cumulative cases count","Cumulative confirmed cases reported to WHO to data","New confirmed deaths. Calculated by subtracting previous cumulative deaths from current cumulative deaths","Cumulative confirmed deaths reported to WHO to data"))
+kable(variable_table_1) %>% kable_styling(bootstrap_options = c("striped","hover"))
+```
+<br/>
+For the second data set, there are 67 variables and 162600. Since there are too many samples and variables, I will only focus on the data in the United States and I will only use several variables. The brief introduction of these variables is in the following. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+variable_table_2 <- data.frame(Variable_name=c("data","location","new_deaths","icu_patients_per_million","people_vaccinated","people_fully_vaccinated","total_boosters","stringency_index","hospital_beds_per_thousand","gdp_per_capita"), Type=c("Data","categorical","numerical","numerical","numerical","numerical","numerical","numerical","numerical","numerical"), Description=c("Data of reporting","The name of different country","number of new deaths in different countries each day","patients per million in ICU", "Number of people who takes vaccine","Number of people fully vaccinated","Number of people who take boosters", "The strickness of policies in different countries (level 0-10)", "Number of beds per thousand of hospital in different countries","gda per capita in different countries"))
+kable(variable_table_2) %>% kable_styling(bootstrap_options = c("striped","hover"))
+```
+
+# Descriptive analysis of Cases and Deaths of Coronavirus in different countries
+
+The data set used to analyze the cases and deaths of Coronavirus is the data set from World Health Organization. Before analyze the Coronavirus cases and deaths in different countries, I show a summary table for overall cases and deaths in the world. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+summary(covid)
+```
+According to the summary table, the date set starts from 2020-01-03 to the recent data, and it contains a lot of countries. From the summary table, the numerical variables are `New_cases`, `Cumulative_cases`, `New_deaths` and `Cumulative_deaths`. There are no unknown samples in the numerical variables. The median of New Coronavirus cases in a day in the world is 21 and the mean of New Coronavirus cases in a day in the world is 2216. The mean of new cases is significantly larger than the median of new cases. Thus the data of `New_cases` is right skewed. The median of new deaths of Coronavirus in the world is 0 and the mean of new deaths of new deaths of Coronavirus is 31.65. Therefore, the data of `New_deaths` is also right skewed since the mean value is significantly larger than the median value. The counter-intuitive thing from this table is the minimum values of `New_cases` and `New_deaths`. The minimum values of new cases and new deaths are negative integers. In common sense these values cannot be negative. I think countries want to reduce the Cumulative cases and Cumulative deaths and they change the data to make the Cumulative cases and deaths to decrease. Then, the some samples of new cases and new deaths become negative. 
+<br/>
+The data set may not exactly represent the true data of Coronavirus, but it still represents the trend of Coronavirus in the world. The data set from World Health Organization is still one of the most representative and reliable data set of Coronavirus. 
+
+In the following table, I will show the mean new cases in different countries each day, median new cases in different countries each day, total new cases in different countries, mean deaths in different countries each day, median deaths in different countries each day, and total deaths in different countries in the following tables.
+<br/>
+The first table is about Coronavirus cases of different countries. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+covid$Date_reported <- as.Date(covid$Date_reported)
+covid$Country_code <- as.factor(covid$Country_code)
+covid$Country <- as.factor(covid$Country)
+covid$WHO_region <- as.factor(covid$WHO_region)
+covid$New_cases <- as.numeric(covid$New_cases)
+covid$Cumulative_cases <- as.numeric(covid$Cumulative_cases)
+covid$New_deaths <- as.numeric(covid$New_deaths)
+covid$Cumulative_deaths <- as.numeric(covid$Cumulative_deaths)
+covid %>% group_by(Country) %>%
+ summarise(mean_new_case=mean(New_cases),median_new_case=median(New_cases),total_cases=max(Cumulative_cases)) %>% arrange(desc(mean_new_case))
+```
+According to the table of Coronavirus cases, the first six countries that have highest mean new cases each day are the United States of America, the India, the Brazil, the France, the United Kingdom, and the Russian Federation. The first six countries that have median new cases of Coronavirus each day are the United States of America, the Brazil, the Indian, the Russian Federation, the United Kingdom, and the Turkey. The first six countries that have highest total cases of Coronavirus are the United States of America, the India, the Brazil, the France, the United Kingdom, and the Russian Federation. 
+<br/>
+Overall, from the table, as I use the mean values as the standard, the United States, the India, the Brazil, the France, the United Kingdom, and the Russian Federation have relatively highest Coronavirus cases than other countries. 
+<br/>
+The second table is about deaths in different countries. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+covid %>% group_by(Country) %>%
+ summarise(mean_new_deaths=mean(New_deaths),median_new_deaths=median(New_deaths),total_deaths=max(Cumulative_deaths)) %>% arrange(desc(total_deaths))
+```
+According to the table of deaths of Coronavirus, the first six countries that have highest mean deaths each day are the United States of America, the Brazil, the India, the Russian Federation, the Mexico, and the Peru. The first six countries that have median deaths of Coronavirus each day are the United States of America, the Brazil, the Indian, the Russian Federation, the Mexico, and the Colombia. The first six countries that have highest total cases of Coronavirus are the United States of America, the Brazil, the India, the Russian Federation, the Mexico, and the Peru. 
+<br/>
+Overall, as I choose mean values as the standard, the United States of America, the Brazil, the India, the Russian Federation, the Mexico, and the Peru. 
+<br/>
+After I show the two tables of Coronavirus cases and deaths, the third tables is about the case-fatality rate in different countries. Before I calculate the case-fatality rate in different countries, I need to delete some countries which have zero total Coronavirus cases to prevent errors in calculation. The table of case-fatality rate is in the following. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+covid_new <- covid %>% group_by(Country) %>%
+ summarise(mean_new_case=mean(New_cases),median_new_case=median(New_cases),total_cases=max(Cumulative_cases), mean_new_deaths=mean(New_deaths),median_new_deaths=median(New_deaths),total_deaths=max(Cumulative_deaths)) %>% arrange(desc(mean_new_case))
+covid_new <- covid_new[-c(228:237),]
+covid_new$case_fatality_rate <- covid_new$total_deaths/covid_new$total_cases
+covid_new %>% dplyr::select(Country , case_fatality_rate) %>% arrange(desc(case_fatality_rate))
+```
+From the table of case fatality rate, we can find that the first 6 countries which have the highest case fatality rate are the Yemen, the Sudan, the Peru, the Mexico, the Syrian Arab Republic, and the Egypt. We can find that the Yemen, the Sudan, the Syrian Arab Republic, and the Egypt are not the countries having relative highest Coronavirus cases and Coronavirus deaths. Therefore, I may assume that countries with highest Coronavirus cases and deaths do not mean that the countries have the highest case fatality rate. 
+<br/>
+
+## Visualization of Cases and deaths of Coronavirus in different countries
+
+As there are too many countries, this report cannot plot all the countries. I will only choose some representative countries in the visualization part. The countries I choose are the United States of America, the Brazil, the India, the Russian Federation, the Mexico, the Peru, the France, the United Kingdom, the Yemen, the Sudan, the Syrian Arab Republic, and the Egypt. These 12 countries are those which have highest Coronavirus Cases, the highese Coronavirus deaths, or the case fatality rate of Coronavirus. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+options(warn = -1)
+fig.spaghetti.1 <- covid %>% 
+  filter(Date_reported>= "2020-01-03", Date_reported<= "2022-02-11", Country==c("United States of America", "Brazil","India","Russian Federation","Mexico","Peru","France","the United Kingdom","Yemen","Sudan","Syrian Arab Republic","Egypt")) %>% 
+  mutate(Date=as.Date(Date_reported)) %>%
+  ggplot(aes(x=Date,y=New_cases,by=Country)) +
+  geom_line(aes(color=Country))+
+  ggtitle("New cases v.s. Time")
+fig.spaghetti.1
+```
+<br/>
+According to this plot, the United States of America had extremely high cases of Coronavirus between around 2020-10 and 2021-02, and between 2021-11 and 2022-02. From 2021-03 to 2021-07, the Coronavirus cases in India immediately increased. This may because of the existence of Delta, a new mutation of Coronavirus. Moreover, in between 2021-11 to 2022-02, because Omicron exists, the new variant of Coronavirus, the Coronavirus cases in all these countries are increases immediately. THe people who had Coronavirus may still get the new mutation of Coronavirus again. Also, the several peak in this plot may cause by the relaxation and strictness of policies. In other times, the new cases of each day in different countries do not sharply increase. 
+
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+options(warn = -1)
+fig.spaghetti.2 <- covid %>% 
+  filter(Date_reported>= "2020-01-03", Date_reported<= "2022-02-11", Country==c("United States of America", "Brazil","India","Russian Federation","Mexico","Peru","France","the United Kingdom","Yemen","Sudan","Syrian Arab Republic","Egypt")) %>% 
+  mutate(Date=as.Date(Date_reported)) %>%
+  ggplot(aes(x=Date,y=New_deaths,by=Country)) +
+  geom_line(aes(color=Country))+
+  ggtitle("New deaths v.s. Time")
+fig.spaghetti.2
+```
+<br/>
+The daily deaths of Coronavirus in most of these countries sharply increase and sharply decrease according to this plot. From the plot, the United States of America, the Brazil, and the India have the biggest change of daily deaths of Coronavirus. From 2020-03, the death cases in the United States of America immediately increased and around 2020-05, the death cases in the United States of America immediately decreased. Then, around the 2021-01, the number of death cases in the United States of America was in the highest peak. Around 2022-01 to 2022-02, the deaths in the United States suddenly increases again. The deaths of Brazil and India suddenly increased and decreased from 2021-03 to 2021-07. The suddenly increased of deaths in Brazil and India might due to prevalent of delta at that time. Therefore, in this plot, most of these countries have several peak of new deaths of Coronavirus. The reasons of these peak may be there are several Coronavirus mutations exist. When a new mutation of Coronavirus, people who had Coronavirus before may still get the new mutation of Coronavirus again. 
+<br/>
+<br/>
+Then, the following plot shows the case fatality rate of these 12 countries. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+c <- which(covid$New_cases==0)
+covid_2 <- covid[-c,]
+covid_2$case_fatality <- covid_2$New_deaths/covid_2$New_cases
+options(warn = -1)
+fig.spaghetti.3 <- covid_2 %>% 
+  filter(Country==c("United States of America", "Brazil","India","Russian Federation","Mexico","Peru","France","the United Kingdom","Yemen","Sudan","Syrian Arab Republic","Egypt")) %>% 
+  mutate(Date=as.Date(Date_reported)) %>%
+  ggplot(aes(x=Date,y=case_fatality,by=Country)) +
+  geom_line(aes(color=Country))+
+  ggtitle("Case fatality rate v.s. Time")
+fig.spaghetti.3
+```
+<br/>
+The plot of Case fatality rate also again show that countries with relatively higher case fatality rate are the Yemen, the Sudan, and the Syrian Arab Republic. In the previous plots, these countries do not have significantly high Coronavirus cases and deaths. In the previous plot, the United States has significantly highest cases and deaths of Coronavirus, but the case fatality rate in the United States is extremely low in this plot. Therefore, the countries with relatively higher cases and deaths of Coronavirus may do not have higher case fatality rate. The increase of case fatality rate may due to other factors.
+<br/>
+In the following extra analysis, I will compare the strictness of policy, hospital bed per thousand of these countries, total population of these countries to find if there are some similarities between these countries.
+
+## Some Extra Analysis 
+
+In the following analysis, I use the variables `stringency_index`, `population`, `gdp_per-capita`, and `hospital_beds_per_thousand`. I calculate the mean values of these variables of the countries I choose before.
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+vaccine_new <- vaccine %>% dplyr::select(location, stringency_index, population, gdp_per_capita,hospital_beds_per_thousand) %>% filter(location==c("United States", "Brazil","India","Russia","Mexico","Peru","France","United Kingdom","Yemen","Sudan","Syria","Egypt")) %>% group_by(location) %>% summarise(mean_str=mean(stringency_index,na.rm=TRUE),mean_pop=mean(population,na.rm=TRUE),mean_gdp=mean(gdp_per_capita,na.rm=TRUE),mean_beds=mean(hospital_beds_per_thousand,na.rm=TRUE)) %>% arrange(desc(mean_str)) 
+vaccine_new <- vaccine_new[rowSums(is.na(vaccine_new))==0,]
+vaccine_new 
+```
+From the table, Yemen and Sudan have the relatively smallest mean stringency of policy for Coronavirus, Peru and India has the relatively highest stringency of policy for Coronavirus. India, United States, and Brazil have relatively higher population and Yemen, Peru, and Sudan have relatively lower population. According to previous analysis, India, United States, and Brazil have higher Coronavirus cases and deaths and Sudan, Peru, and Yemen have relative lower Coronavirus cases and deaths. Therefore, we can assume that countries with higher population are likely to have higher Coronavirus cases and deaths. United States, United Kingdom, France, and Russia have relatively higher mean gdp per capita than other countries, and Yemen, Sudan, and India have relatively lower gdp per capita. According to previous plots and table, United States, United Kingdom, and France have relatively lower case fatality rate of Coronavirus, and Yemen and Sudan have relatively higher case fatality rate of Coronavirus. Therefore, there may exist negative relationship between countries' fatality rate of Coronavirus and countries' gdp per capita.
+United States, United Kingdom, France, and Russia have relatively higher mean hospital beds per thousand than other countries, and Yemen, Sudan, Mexico, and India have relatively lower mean hospital beds per thousand. According to previous plots and table, Russia, United States, United Kingdom, and France have relatively lower case fatality rate of Coronavirus, and Yemen and Sudan have relatively higher case fatality rate of Coronavirus. Therefore, there may exist negative relationship between countries' fatality rate of Coronavirus and mean hospital beds per thousand.
+
+The correlation table of these variables is in the following. 
+```{r, echo=FALSE, include=TRUE, message=FALSE}
+options(warn = -1)
+vaccine_2 <- vaccine %>% dplyr::select(location, stringency_index, population, gdp_per_capita, hospital_beds_per_thousand,new_cases, new_deaths, total_cases, total_deaths) %>% group_by(location) %>% summarise(mean_str=mean(stringency_index,na.rm=TRUE),mean_pop=mean(population,na.rm=TRUE),mean_gdp=mean(gdp_per_capita,na.rm=TRUE),mean_beds=mean(hospital_beds_per_thousand,na.rm=TRUE),mean_cases=mean(new_cases,na.rm=TRUE),mean_deaths=mean(new_deaths,na.rm=TRUE),total_cases=max(total_cases,na.rm = TRUE),total_deaths=max(total_deaths,na.rm = TRUE))
+vaccine_2 <- vaccine_2[rowSums(is.na(vaccine_2))==0,]
+vaccine_2$case_fatality_rate <- vaccine_2$total_deaths/vaccine_2$total_cases
+vaccine_3 <- vaccine_2[,-c(1,8,9)]
+
+m_cor <- cor(vaccine_3)
+m_cor
+```
+According to the correlation table, overall, only the mean cases and mean deaths of Coronavirus are highly correlated and their correlation is 0.92378. The correlation between mean population of countries and mean cases of Coronavirus is 0.4341, and the correlation between mean population of countries and mean deaths of Coronavirus is 0.4193. Compare to `stringency_index`, `gdp_per_capita`, and `hospital_beds_per_thousand`, population has the highest correlation value of mean cases and mean deaths. For the case fatality rate, the correlation between mean gdp per capita and case fatality rate is -0.33359. Therefore, compare to other variables, gdp per capita is more correlated to case fatality rate. 
+
+# Vaccine Analysis 
+
+In this project, I cannot analyze the effectiveness of Vaccine in all the countries. Thus, I only choose one representative countries for the Vaccine Analysis. I choose to focus on the United States of America. The United States of America has the highest Coronavirus cases and deaths. Moreover, the medical level and gdp in the United States is one of the best in the world. Therefore, people may be unlikely to die because of the limited medical resources, money, and so on than in other countries. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(lubridate)
+library(ggsci)
+library(patchwork)
+library(forecast)
+library(gglm)
+vaccine_df <- vaccine_df %>%
+  mutate(date = ymd(date)) %>%
+  dplyr::select(date, new_deaths, icu_patients, people_vaccinated_per_hundred,  
+                people_fully_vaccinated_per_hundred, total_boosters_per_hundred) %>%
+  mutate(vaccinated = ifelse(is.na(people_vaccinated_per_hundred), 0, 1),
+         people_vaccinated_per_hundred = ifelse(is.na(people_vaccinated_per_hundred), 0, people_vaccinated_per_hundred),
+         people_fully_vaccinated_per_hundred = ifelse(is.na(people_fully_vaccinated_per_hundred), 0, people_fully_vaccinated_per_hundred),
+         total_boosters_per_hundred = ifelse(is.na(total_boosters_per_hundred), 0, total_boosters_per_hundred)) %>%
+  dplyr::filter(!is.na(icu_patients))
+```
+
+## Visualization of Vaccine Analysis 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.cap='COVID-19 daily deaths and severe cases in U.S.', fig.align='center'}
+vaccine_df %>% 
+  dplyr::select(date, new_deaths, icu_patients) %>%
+  pivot_longer(-date, names_to = 'Var', values_to = 'Val') %>%
+  mutate(Var = ifelse(Var == 'new_deaths', 'new deaths', 'ICU patients')) %>%
+  ggplot(aes(x = date, y = Val, col = Var, gorup = Var)) +
+  geom_line() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.major.y = element_line(colour = 'grey'),
+        legend.position = 'top') +
+  labs(x = '', y = 'Number', col = '') +
+  scale_x_date(date_labels = "%Y-%m") +
+  facet_grid(vars(Var), scales = 'free') +
+  guides(col = 'none') +
+  scale_color_jama()
+```
+
+Here, the visualizations are used to explore the relationship between the daily COVID-19 situation in the United States, the state of vaccinations in the United States, and the two. From figure 1, it can be found that from July 2020 to February 2022, the new deaths of COVID-19 cases fluctuated in July 2020, January 2021, August 2021 and February 2022, respectively. three peaks. Correspondingly, the daily admission of severe COVID-19 patients in the ICU peaked in January 2021. From August 2021 to February 2022, the daily admission of critically ill patients in the ICU showed a high fluctuation. This two plots clearly show that there are around 3 peak of new deaths and ICU patients in the United States. These peaks may cause by mutations of Coronavirus. Moreover, when people gradually take vaccines, they may feel they immune for Coronavirus and they may not keep distance to each other and may not wear mask. Then, they still may get Coronavirus. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.cap='Number of people vaccinated in the U.S.', fig.align='center'}
+vaccine_df %>% 
+  dplyr::select(people_vaccinated_per_hundred, date, 
+                people_fully_vaccinated_per_hundred, total_boosters_per_hundred) %>%
+  pivot_longer(-date, names_to = 'Var', values_to = 'Val') %>%
+  ggplot(aes(x = date, y = Val, col = Var, gorup = Var)) +
+  geom_line() +
+  scale_color_d3(limits = c('people_vaccinated_per_hundred', 
+                'people_fully_vaccinated_per_hundred', 'total_boosters_per_hundred'),
+                labels = c('vaccinated', 'fully vaccinated', 'boosters')) +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.major.y = element_line(colour = 'grey'),
+        legend.position = 'top') +
+  labs(x = '', y = 'people per hundred', col = '') +
+  scale_x_date(date_labels = "%Y-%m")
+```
+
+The U.S. COVID-19 vaccine policy began in December 2020. It can be seen from the figure that the number of vaccinated people increased rapidly from 2021, and by June 2021, the increase in the number of vaccinated people gradually slowed down. The number of people fully vaccinated with the three-shot vaccine also increased rapidly until June 2021, and then gradually slowed down. The number of boosters vaccinated has been increasing since August 2021, and the growth has been relatively rapid.
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.cap = 'Vaccination Effectiveness', fig.align='center', fig.width=12}
+p1 <- vaccine_df %>% 
+  dplyr::select(people_vaccinated_per_hundred, icu_patients, 
+                people_fully_vaccinated_per_hundred, total_boosters_per_hundred) %>%
+  pivot_longer(-icu_patients, names_to = 'Var', values_to = 'Val') %>%
+  mutate(Var = case_when(Var == 'people_vaccinated_per_hundred'~'vaccinated',
+                         Var == 'people_fully_vaccinated_per_hundred'~'fully vaccinated',
+                         Var == 'total_boosters_per_hundred' ~ 'boosters')) %>%
+  ggplot(aes(y = icu_patients, x = Val, col = Var)) +
+  geom_point() +
+  scale_color_d3() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.major.y = element_line(colour = 'grey'),
+        legend.position = 'top')  +
+  facet_wrap(vars(Var), scales = 'free') +
+  labs(y = 'ICU patients', x = 'Number') +
+  guides(col = 'none')
+
+p2 <- vaccine_df %>% 
+  dplyr::select(people_vaccinated_per_hundred, new_deaths, 
+                people_fully_vaccinated_per_hundred, total_boosters_per_hundred) %>%
+  pivot_longer(-new_deaths, names_to = 'Var', values_to = 'Val') %>%
+  mutate(Var = case_when(Var == 'people_vaccinated_per_hundred'~'vaccinated',
+                         Var == 'people_fully_vaccinated_per_hundred'~'fully vaccinated',
+                         Var == 'total_boosters_per_hundred' ~ 'boosters')) %>%
+  ggplot(aes(y = new_deaths, x = Val, col = Var)) +
+  geom_point() +
+  scale_color_d3() +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.major.y = element_line(colour = 'grey'),
+        legend.position = 'top')  +
+  facet_wrap(vars(Var), scales = 'free') +
+  labs(y = 'new deaths', x = 'Number') +
+  guides(col = 'none')
+p1 / p2
+```
+
+In this project, we are most concerned about the effectiveness of the COVID-19 vaccine. Here I use scatter-plots to explore the relationship between vaccinated numbers and daily new deaths, and vaccinated numbers versus ICU admissions . It can be seen from the figure that with the implementation of the vaccination policy, the number of daily deaths has dropped sharply, but with the increase in the number of vaccinations, the number of daily deaths has risen sharply again with great fluctuations. The relationship between the number of ICU admissions and the number of vaccinations also showed a rapid decline with the increase of the number of vaccinations. However, when the number of vaccinations reached a certain scale, the number of ICU admissions showed a sharp rebound.
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.align='center', fig.cap='Correlation matrix'}
+vaccine_df1 <- vaccine_df %>% dplyr::select(-date, vaccinated) %>%
+               na.omit
+colnames(vaccine_df1) <- c('New Deaths', 'ICU Patients', 'People for Vaccinating',
+                           'People for fully Vaccinating', 'Boosters', 'Is Vaccinated')
+m_cor <- cor(vaccine_df1)
+library(corrplot)
+m_sig <- cor.mtest(m_cor)$p
+
+corrplot(corr = m_cor, p.mat = m_sig, order = "AOE", type = "upper", 
+         tl.pos = "t", tl.col = 'black', tl.cex = 0.7, insig = 'blank',
+         method = 'ellipse')
+corrplot(corr = m_cor, p.mat = m_sig, add = TRUE, type = "lower", method = "number", order = "AOE",
+         diag = FALSE, tl.pos = "n", cl.pos = "n", insig = 'blank')
+```
+
+For a more comprehensive evaluation of the vaccine data, I created a new variable `Is Vaccinated`, which is a training variable indicating whether or not to start vaccination. Here, I use a correlation matrix to explore the correlation between variables. The ellipse in the figure represents the correlation, and the numbers represent the correlation coefficient. The flatter the ellipse, the stronger the correlation. Red represents negative correlation, blue represents positive correlation. Blank squares in the figure indicate that the correlation is not significant. It can be seen from the figure that there is a very strong positive correlation between the number of vaccinations and the number of fully vaccinated (three shots), indicating that there may be severe collinearity in subsequent modeling. So we need to consider using one of these two variables as an explanatory variable. ICU patients showed a strong positive correlation with daily deaths, which means that once infected with COVID-19, once they enter the ICU, they are likely to die of the disease. In addition, it can be found from the figure that the number of daily deaths is weakly negatively correlated with the scale of vaccination, while the correlation between the number of ICU admissions and the scale of vaccination is not significant.
+
+```{r,warning=FALSE, echo=FALSE, message=FALSE, fig.width=12, fig.cap=''}
+p1 <- ggplot(vaccine_df, aes(x = new_deaths, y = ..density..)) +
+  geom_histogram(fill = 'white',  col = 'black',bins = 30) + 
+  labs(x = 'new deaths') +
+  theme_bw()
+
+p2 <- ggplot(vaccine_df, aes(x = icu_patients, y = ..density..)) +
+  geom_histogram(fill = 'white',  col = 'black',bins = 20) +
+  labs(x = 'ICU patients') +
+  theme_bw()
+
+p3 <- ggplot(vaccine_df, aes(x = log(new_deaths), y = ..density..)) +
+  geom_histogram(fill = 'white',  col = 'black',bins = 30) + 
+  labs(x = 'log(new deaths)') +
+  theme_bw()
+
+p4 <- ggplot(vaccine_df, aes(x = log(icu_patients), y = ..density..)) +
+  geom_histogram(fill = 'white',  col = 'black',bins = 30) +
+  labs(x = 'log(ICU patients)') +
+  theme_bw()
+(p1 + p2)/(p3 + p4)
+```
+
+In this project, I am interested in the daily number of deaths and patients admitted to the ICU. Here I describe the distribution of these two variables. As can be seen from the figure, daily deaths are heavily right-skewed, while daily ICU admissions show a weaker right-skewed distribution. And the values of these two variables are larger. This means that in the subsequent linear regression, I need to log-transform these two variables. In addition, it can be found from the figure that after the logarithmic transformation, the variation of the variables of the data is small, and it is more similar to the normal distribution. 
+
+## Method for Vaccine Analysis 
+
+Regression analysis was mainly used in this project to explore the effectiveness of vaccines. Regression analysis is a very simple and effective model. Its data requirements are simple and its results are simple to understand. Also the data I'm using has a temporal nature, so I need to account for its lag correlation. From the previous analysis, it can be found that there is a strong lag correlation between daily deaths and daily ICU cases. So I need to take its lagged series into the model for consideration.
+
+It usually takes several weeks after COVID-19 vaccination to produce T and B lymphocytes. Therefore, because the vaccine does not have enough time to provide protection, it is possible to contract the virus that causes COVID-19 before or after the vaccination, and then get sick. Here I lag the vaccination data by 14 days and 21 days and rematch it with the number of COVID-19 infections for modeling analysis. Overall, I will make two models. In the first model, I will lag the vaccination data by 14 days, and in the second model, I will lag the vaccination data by 21 days. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+vaccine_df_1 <- vaccine_df %>% 
+  dplyr::select(new_deaths, icu_patients, date) %>%  # select variables
+  mutate(date = date + 14) %>%  # time lag two weeks
+  # Merge vaccine data with 14-day lag death data
+  inner_join(vaccine_df %>%
+               dplyr::select(date, people_vaccinated_per_hundred,
+                             people_fully_vaccinated_per_hundred, 
+                             total_boosters_per_hundred, vaccinated)) %>%
+  mutate(new_deaths = log(new_deaths),
+         icu_patients = log(icu_patients))
+colnames(vaccine_df_1)[7] <- 'Is_Vaccinated' 
+```
+
+### Model 1 
+
+In the first model, I lag the vaccination data by 14 days. The previous correlation matrix tells us that there is an extremely strong correlation between the two indicators of vaccination. Fully incorporating these two metrics into a linear regression model can lead to severe collinearity. In real life, either of these two metrics can tell a story about the status of vaccinations. Here, I built a regression model of daily deaths using only the number of fully vaccinated and daily ICU cases as explanatory variables. In addition, I created a corresponding dummy variable Is_vaccinated to consider the effect of implementing the vaccine policy. Since the data are time series, there may be correlations between the response variables. As a result, the model residuals will appear autocorrelation. When the model residuals are auto-correlated, the OLS estimator is still unbiased and consistent, and when the sample size is large, the estimator still obeys the normal distribution, but the estimation is not an effective estimation. Therefore I need to test the autocorrelation of the residuals. The Durbin Watson test shows a p-value of 2.2e-16 and less than 0.05, indicating that there is autocorrelation in the model, so I need to correct the model's estimates accordingly.
+  
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+library(sandwich)
+library(car)
+mod1 <- lm(log(new_deaths) ~ log(icu_patients)  + 
+             people_fully_vaccinated_per_hundred  +  
+             total_boosters_per_hundred + 
+             Is_Vaccinated, data = vaccine_df_1)
+library(lmtest)
+dwtest(mod1)
+```
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+coeftest(mod1, vcov. = vcovHAC(mod1))
+```
+
+The preceding analysis shows that there is an autocorrelation between the residuals. At the same time to avoid heteroscedasticity. When estimating the covariance matrix between coefficients, I use heteroscedasticity and autocorrelation consistent (HAC) covariance matrix estimation. The model results are as follows, where the model formula is :$$log(new \_death_t) = -0.90 - 0.002 people_fully \ vaccinated_per \ hundred_t  + 1.26 log(ICU \ patients_t) \\+ 0.003 total\_boosters\_per\_hundred + 0.068Is\_Vaccinated$$
+
+The coefficient of `log(icu_patients)` is 1.26, which means that for every 1% increase in ICU admission, the number of log daily deaths increases by about 1.26%, holding other variables fixed. The effect of icu_patients is significant, which means that once COVID-19 infected patients enter the ICU for treatment, they will have a high probability of death. The coefficient of `people_fully_vaccinated_per_hundred` is -0.002, which implies that for every 10 per hundred more people fully vaccinated, the log daily death toll would fall by about 2%, holding other variables fixed. The effect is significant, which shows that the implementation of the vaccine can effectively reduce the mortality rate of the population. The coefficient of `total_boosters_per_hundred` is 0.003, which means that for every 10 additional 100 people vaccinated with booster shots, the log daily death toll will increase by about 3%, holding other variables fixed. The effect is significant, possibly because booster needles reduce people's self-confidence, which increases the chance of infection. The coefficient of `Is_vaccinated` is 0.068, which suggests that implementing a vaccine policy would increase the number of log daily deaths by about 6.8%, holding other variables fixed. and its effect is significant. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.align='center', fig.cap='Residual Diagnostics for Regression of Daily Deaths'}
+gglm(mod1, 
+     theme = theme(panel.background = element_blank(),
+                   panel.grid.major = element_blank(),
+                   panel.grid.major.y = element_line(colour = 'grey'))) 
+```
+
+To increase confidence in the above analysis, a residual analysis is performed here. The upper left graph is a scatterplot of residuals versus fitted values. The residuals in the figure are randomly distributed uniformly and there is no trend between the residuals and the fitted values, which suggests that the residuals satisfy the conditional zero-mean assumption. The upper right plot shows that the residuals are distributed around the theoretical line, and which implies that the residuals are normally distributed. The residuals in the lower left plot show some fluctuating clustering, which shows the residuals are heteroskedasticity. The bottom right graph shows that there are no outliers. This shows that our estimates of the coefficients are unbiased estimates, but their p-values may be amplified due to heteroskedasticity in the residuals. Therefore, we need to use heteroscedasticity-consistent covariance matrix estimation when presenting the model (in fact, I used this estimation in the previous part of the model presentation).
+
+### Model 2 
+
+In the second model, I lag vaccination data by 21 days. The Durbin Watson test shows a p-value of 2.2e-16 and less than 0.05, indicating that there is autocorrelation in the model, so I also need to correct the model's estimates accordingly. The results of Durbin Watson test in these two models are similar. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+vaccine_df_2 <- vaccine_df %>% 
+  dplyr::select(new_deaths, icu_patients, date) %>%  # select variables
+  mutate(date = date + 21) %>%  # time lag three weeks
+  # Merge vaccine data with 21-day lag death data
+  inner_join(vaccine_df %>%
+               dplyr::select(date, people_vaccinated_per_hundred,
+                             people_fully_vaccinated_per_hundred, 
+                             total_boosters_per_hundred, vaccinated)) %>%
+  mutate(new_deaths = log(new_deaths),
+         icu_patients = log(icu_patients))
+colnames(vaccine_df_2)[7] <- 'Is_Vaccinated' 
+```
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+mod2 <- lm(log(new_deaths) ~ log(icu_patients)  + 
+             people_fully_vaccinated_per_hundred  +  
+             total_boosters_per_hundred + 
+             Is_Vaccinated, data = vaccine_df_2)
+dwtest(mod2)
+```
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+coeftest(mod2, vcov. = vcovHAC(mod2))
+```
+
+The preceding analysis shows that there is an autocorrelation between the residuals. At the same time to avoid heteroscedasticity. When estimating the covariance matrix between coefficients, I also use heteroscedasticity and autocorrelation consistent (HAC) covariance matrix estimation. The model results are as follows, where the model formula is :$$log(new \_death_t) = -0.85 - 0.002 people_fully \ vaccinated_per \ hundred_t  + 1.24 log(ICU \ patients_t) \\+ 0.003 total\_boosters\_per\_hundred + 0.067Is\_Vaccinated$$
+
+The coefficient of `log(icu_patients)` is 1.23, which means that for every 1% increase in ICU admission, the number of log daily deaths increases by about 1.23%, holding other variables fixed. The effect of icu_patients is significant, which means that once COVID-19 infected patients enter the ICU for treatment, they will have a high probability of death. The coefficient of `people_fully_vaccinated_per_hundred` is -0.002, which implies that for every 10 per hundred more people fully vaccinated, the log daily death toll would fall by about 2%, holding other variables fixed. The effect is significant, which shows that the implementation of the vaccine can effectively reduce the mortality rate of the population. The coefficient of `total_boosters_per_hundred` is 0.003, which means that for every 10 additional 100 people vaccinated with booster shots, the log daily death toll will increase by about 3%, holding other variables fixed. The effect is significant, possibly because booster needles reduce people's self-confidence, which increases the chance of infection. The coefficient of `Is_vaccinated` is 0.067, which suggests that implementing a vaccine policy would increase the number of log daily deaths by about 6.7%, holding other variables fixed. and its effect is significant. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.align='center', fig.cap='Residual Diagnostics for Regression of Daily Deaths'}
+gglm(mod1, 
+     theme = theme(panel.background = element_blank(),
+                   panel.grid.major = element_blank(),
+                   panel.grid.major.y = element_line(colour = 'grey'))) 
+```
+
+To increase confidence in the above analysis, a residual analysis is performed here. The upper left graph is a scatterplot of residuals versus fitted values. The residuals in the figure are randomly distributed uniformly and there is no trend between the residuals and the fitted values, which suggests that the residuals satisfy the conditional zero-mean assumption. The upper right plot shows that the residuals are distributed around the theoretical line, and which implies that the residuals are normally distributed. The residuals in the lower left plot show some fluctuating clustering, which shows the residuals are heteroskedasticity. The bottom right graph shows that there are no outliers. This shows that our estimates of the coefficients are unbiased estimates, but their p-values may be amplified due to heteroskedasticity in the residuals. Therefore, we need to use heteroscedasticity-consistent covariance matrix estimation when presenting the model.
+
+The results from this two models are very similar to each other. Therefore, the difference between lagging vaccination by 14 days and lagging vaccination by 21 days is small, and we can use any one of the model.
+
+## Causal Inference 
+
+As my treatments for the two models are numerical variables except `Is_vaccinated`, it is hard to make assumptions to test the causal effect of vaccine and deaths of Coronavirus. Therefore, I just briefly explain the causality between vaccine and deaths. In this two model, I mainly investigate the effectiveness of vaccine and I lag vaccination data by 14 days and 21 days because vaccine takes time to work. Thus, I merge vaccine data with 14-day and 21-day lag death data. According the two model, vaccine and deaths have significant relationship. I think the deaths cases are influenced by vaccine. 
+
+# Sensitive Analysis 
+
+In this part, I also want to find the relationship between the number of people with severe Coronavirus and number of people taking vaccine. I choose the variable `icu patients` as the representation for the number of people with severe Coronavirus. I use the data with lagging vaccination data by 14 days. 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+mod3 <- lm(log(icu_patients) ~  people_fully_vaccinated_per_hundred +
+             total_boosters_per_hundred + Is_Vaccinated, data = vaccine_df_1)
+dwtest(mod3)
+```
+
+Based on the previous exploratory analysis, I introduced a quadratic term in the regression model of ICU cases. The Durbin Watson test shows that the model has residual autocorrelation.
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+coeftest(mod3, vcov. = vcovHAC(mod3))
+```
+
+Here, I also use heteroscedasticity and autocorrelation consistent (HAC) covariance matrix estimation.The model results are as follows, where the model formula is :$$log(icu \ patients_t) = 2.23 - 0.001 people_fully \ vaccinated_per \ hundred_t  + 0.004 total\_boosters\_per\_hundred \\+ 0.054 Is\_Vaccinated$$ 
+
+The coefficient of `people_fully_vaccinated_per_hundred` is -0.001, which means that for every ten person per hundred people who are fully vaccinated, the log of average ICU admission population decreases by about 1%, holding other variables fixed. The coefficient of `total_boosters_per_hundred` is 0.004, indicating that for each additional ten person per 100 people receiving booster shots, the log of average ICU admission population decreases by about 4%, holding other variables fixed. The coefficient of `Is_Vaccinated` is 0.054, indicating that after the implementation of the vaccine policy, the log of average ICU admission population increased by about 5.4%, holding other variables fixed.
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.align='center', fig.cap='Residual Diagnostics for Regression of ICU Patients'}
+gglm(mod3, 
+     theme = theme(panel.background = element_blank(),
+                   panel.grid.major = element_blank(),
+                   panel.grid.major.y = element_line(colour = 'grey'))) 
+```
+
+The residual plots of the model looks very strange. From the figure, it can be found that the model residuals satisfy the conditional zero mean assumption, normal distribution assumption. However, the residuals seem not randomly distributed. There are some possible reasons that these residual plots look strange. The variable `icu patients` may have some potential problems. The number of icu patients relates to the number of hospitals, the number of beds in the hospitals, the number of doctors in the hospitals. If a hospital is full, even there are some more people with severe Coronavirus, they cannot move to the ICU in this hospital. Therefore, the number of icu patients sometimes cannot represent the number of people with severe Coronavirus. 
+
+# Results and Conclusion 
+
+Coronavirus is the worldwide Epidemic. Different countries have different situations for COVID-19. For instance, the United States, India, the United Kingdom, Russia, and France face serious problems with Coronavirus, since these countries have relatively higher Coronavirus cases and deaths. However, the case fatality rate in these countries is not high. Therefore, there may not exist a relationship between the number of cases and deaths of Coronavirus and the case fatality rate. In further analysis, I find that the countries with a higher number of cases and deaths of Coronavirus are likely to have higher populations. Moreover, the countries with the lower case fatality rate of Coronavirus seem to have higher gdp per capita and a higher number of hospital beds per thousand.
+
+For the vaccine part, through previous research, it was found that the implementation of the vaccine policy will significantly increase the number of ICU admissions and the number of daily deaths, and the increase in the number of vaccinations will significantly reduce the number of daily deaths and the number of ICU admissions. The increase in the number of booster shots will significantly increase the number of daily deaths and the number of ICU admissions. This is mainly due to the fact that countries around the world have changed from a policy of closing cities and clearing the city to coexisting with the virus. And the vaccine as its strong policy. Countries open their borders by implementing vaccine policies, which increases foreign risks. In other words, not because the implementation of the vaccine policy poses a high risk. Rather, it is because of the opening of borders at the same time as the implementation of the vaccine policy, which increases the risk of contracting COVID-19, thereby increasing the number of deaths and the number of ICU admissions. At the same time, the booster needle appeared in response to the newly mutated COVID-19 virus. In other words, the booster needle was implemented because the newly mutated COVID-19 virus has caused us huge losses and seriously threatened our lives. Therefore, in general, the implementation of vaccines can significantly reduce the probability of severe illness and death.
+
+In this project, I used only four months of observational data. The sample size may not be sufficient to reflect the real situation. In the sample data, the number of people who were fully vaccinated was between 59 and 64. This interval is too narrow to effectively observe the efficacy of the vaccine. In addition, according to scientific guidance, vaccines need to reach a certain coverage to be effective. Also, I only used the number of people who were fully vaccinated as an explanatory variable, which may have left out some important variables. Therefore, in order to draw more valid, credible and scientific conclusions, I not only need data from longer observation periods, but also need to use other valid information to think about, and consider using other higher-order models.
+
+# Reference {-}
+
+[1] Artificial Intelligence for Coronavirus Outbreak. 2020 Jun 23 : 1–22. Published online 2020 Jun 23. doi: 10.1007/978-981-15-5936-5_1
+
+[2] Key messages and actions for prevention and control in schools Key Messages and Actions for COVID-19 Prevention and Control in Schools (2020) (March), p. 13. Available at: https://www.who.int/docs/default-source/coronaviruse/key-messages-and-actions-for-covid-19-prevention-and-control-in-schools-march-2020.pdf?sfvrsn=baf81d52_4#:∼:text=COVID-19isa,2019-nCoV
+
+[3] The Global Economic Outlook During the COVID-19 Pandemic: A Changed World (2020). Available at: https://www.worldbank.org/en/news/feature/2020/06/08/the-global-economic-outlook-during-the-covid-19-pandemic-a-changed-world (Accessed: 23 November 2020).
+
+# Code Appendix {-}
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
+
+
+
+
+
